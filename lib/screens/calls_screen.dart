@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutterchat_app/utils/colors.dart'; 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CallsScreen extends StatelessWidget {
   const CallsScreen({super.key});
@@ -7,15 +9,22 @@ class CallsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
+        backgroundColor: AppColors.surface,
         title: Text(
           'Calls',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            fontSize: 24,
+            color: AppColors.textPrimary,
+          ),
         ),
         actions: [
-          IconButton(icon: Icon(Icons.search), onPressed: () {}),
+          IconButton(icon: Icon(Icons.search, color: AppColors.grey), onPressed: () {}),
           PopupMenuButton(
-            icon: Icon(Icons.more_vert),
+            icon: Icon(Icons.more_vert, color: AppColors.grey),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             itemBuilder: (context) => [
               PopupMenuItem(value: 'clear', child: Text('Clear call log')),
               PopupMenuItem(value: 'settings', child: Text('Settings')),
@@ -62,12 +71,25 @@ class CallsScreen extends StatelessWidget {
               isVideo: false,
             ),
           ]),
-          SizedBox(height: 80),
+          SizedBox(height: 100),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.add_call),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accent.withOpacity(0.4),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: () {},
+          elevation: 0,
+          child: Icon(Icons.add_call, size: 24),
+        ),
       ),
     );
   }
@@ -77,12 +99,12 @@ class CallsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
           child: Text(
             title,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: AppColors.grey,
             ),
           ),
@@ -119,43 +141,81 @@ class CallsScreen extends StatelessWidget {
         break;
     }
 
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundColor: AppColors.grey,
-        backgroundImage: NetworkImage(call.imageUrl),
-      ),
-      title: Text(
-        call.name,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: AppColors.black,
+    return InkWell(
+      onTap: () {},
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: AppColors.lightGrey,
+              backgroundImage: CachedNetworkImageProvider(call.imageUrl),
+            ),
+            SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    call.name,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: call.callType == CallType.missed
+                          ? AppColors.red
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(callIcon, size: 16, color: iconColor),
+                      SizedBox(width: 6),
+                      Text(
+                        call.time,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildCallActionButton(
+                  call.isVideo ? Icons.videocam : Icons.call,
+                  AppColors.accent,
+                ),
+                SizedBox(width: 8),
+                _buildCallActionButton(
+                  Icons.chat,
+                  AppColors.grey,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      subtitle: Row(
-        children: [
-          Icon(callIcon, size: 16, color: iconColor),
-          SizedBox(width: 4),
-          Text(
-            call.time,
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.grey,
-            ),
-          ),
-        ],
+    );
+  }
+
+  Widget _buildCallActionButton(IconData icon, Color color) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        shape: BoxShape.circle,
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            call.isVideo ? Icons.videocam : Icons.call,
-            color: AppColors.primary,
-          ),
-        ],
+      child: Icon(
+        icon,
+        color: color,
+        size: 20,
       ),
-      onTap: () {},
     );
   }
 }
