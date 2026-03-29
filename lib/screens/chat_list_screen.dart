@@ -3,6 +3,7 @@ import 'package:flutterchat_app/utils/colors.dart';
 import 'package:flutterchat_app/screens/chat_screen.dart'; 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -75,16 +76,25 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
+        backgroundColor: AppColors.surface,
         title: Text(
           'FlutterChat',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            fontSize: 24,
+            color: AppColors.textPrimary,
+          ),
         ),
         actions: [
-          IconButton(icon: Icon(Icons.camera_alt_outlined), onPressed: () {}),
-          IconButton(icon: Icon(Icons.search), onPressed: () {}),
+          _buildIconButton(Icons.contrast_outlined),
+          _buildIconButton(Icons.search),
           PopupMenuButton(
-            icon: Icon(Icons.more_vert),
+            icon: Icon(Icons.more_vert, color: AppColors.grey),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             itemBuilder: (context) => [
               PopupMenuItem(value: 'new_group', child: Text('New group')),
               PopupMenuItem(value: 'new_broadcast', child: Text('New broadcast')),
@@ -93,13 +103,26 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
+      body: ListView.separated(
+        padding: EdgeInsets.symmetric(vertical: 8),
         itemCount: chats.length,
+        separatorBuilder: (context, index) => Divider(
+          indent: 80,
+          height: 1,
+          color: AppColors.divider,
+        ),
         itemBuilder: (context, index) {
           final chat = chats[index];
           return ChatListTile(chat: chat);
         },
       ),
+    );
+  }
+
+  Widget _buildIconButton(IconData icon) {
+    return IconButton(
+      icon: Icon(icon, color: AppColors.grey),
+      onPressed: () {},
     );
   }
 }
@@ -124,104 +147,128 @@ class ChatListTile extends StatelessWidget {
           ),
         );
       },
-      child: Container(
+      child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: AppColors.grey,
-                  backgroundImage: NetworkImage(chat.imageUrl),
-                ),
-                if (chat.isOnline)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: AppColors.online,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.white, width: 2),
-                      ),
-                    ),
-                  ),
-              ],
+            _buildAvatar(),
+            SizedBox(width: 14),
+            Expanded(child: _buildContent()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    return Stack(
+      children: [
+        Container(
+          padding: EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: chat.isOnline
+                ? Border.all(color: AppColors.accent, width: 2)
+                : null,
+          ),
+          child: CircleAvatar(
+            radius: 28,
+            backgroundColor: AppColors.lightGrey,
+            backgroundImage: CachedNetworkImageProvider(chat.imageUrl),
+          ),
+        ),
+        if (chat.isGroup)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.surface, width: 2),
+              ),
+              child: Icon(
+                Icons.group,
+                size: 12,
+                color: AppColors.white,
+              ),
             ),
-            SizedBox(width: 12),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        chat.name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: chat.unreadCount > 0 ? FontWeight.bold : FontWeight.w500,
-                          color: AppColors.black,
-                        ),
-                      ),
-                      Text(
-                        _formatTime(chat.time),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: chat.unreadCount > 0 ? AppColors.accent : AppColors.grey,
-                          fontWeight: chat.unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (chat.isGroup) ...[
-                        Icon(Icons.group, size: 16, color: AppColors.grey),
-                        SizedBox(width: 4),
-                      ],
-                      Expanded(
-                        child: Text(
-                          chat.lastMessage,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.grey,
-                            fontWeight: chat.unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      if (chat.unreadCount > 0) ...[
-                        SizedBox(width: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.accent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            chat.unreadCount.toString(),
-                            style: TextStyle(
-                              color: AppColors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+              child: Text(
+                chat.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: chat.unreadCount > 0 ? FontWeight.w600 : FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              _formatTime(chat.time),
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: chat.unreadCount > 0 ? AppColors.accent : AppColors.grey,
+                fontWeight: chat.unreadCount > 0 ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
           ],
         ),
-      ),
+        SizedBox(height: 6),
+        Row(
+          children: [
+            if (chat.isGroup) ...[
+              Icon(Icons.group, size: 16, color: AppColors.grey),
+              SizedBox(width: 4),
+            ],
+            Expanded(
+              child: Text(
+                chat.lastMessage,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: chat.unreadCount > 0 ? AppColors.textPrimary : AppColors.grey,
+                  fontWeight: chat.unreadCount > 0 ? FontWeight.w500 : FontWeight.w400,
+                ),
+              ),
+            ),
+            if (chat.unreadCount > 0) ...[
+              SizedBox(width: 8),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(
+                  chat.unreadCount.toString(),
+                  style: GoogleFonts.inter(
+                    color: AppColors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 
